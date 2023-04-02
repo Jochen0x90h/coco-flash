@@ -1,12 +1,12 @@
 add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
-	PUBLIC FILE_SET headers TYPE HEADERS FILES
-		Flash.hpp
+	#PUBLIC FILE_SET headers TYPE HEADERS FILES
+	#	Flash.hpp
 	PRIVATE
-		Flash.cpp
+		dummy.cpp
 )
 
-if(${PLATFORM} STREQUAL "native")
+if(${PLATFORM} STREQUAL "native" OR ${PLATFORM} STREQUAL "emu")
 	# native platform (Windows, MacOS, Linux)
 	target_sources(${PROJECT_NAME}
 		PUBLIC FILE_SET platform_headers TYPE HEADERS BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/native FILES
@@ -32,6 +32,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME}
 	coco::coco
+	coco-buffer::coco-buffer
 )
 
 target_include_directories(${PROJECT_NAME}
