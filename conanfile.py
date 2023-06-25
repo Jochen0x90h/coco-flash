@@ -15,8 +15,7 @@ class Project(ConanFile):
     generators = "CMakeDeps", "CMakeToolchain"
     exports_sources = "conanfile.py", "CMakeLists.txt", "coco/*", "test/*"
     requires = [
-        "coco/0.5.0",
-        "coco-buffer/main"
+        "coco-buffer/0.1.0"
     ]
     tool_requires = "coco-toolchain/0.1.0"
 

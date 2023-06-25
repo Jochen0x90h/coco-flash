@@ -10,11 +10,9 @@ const uint8_t writeData[] = {0x12, 0x34, 0x56, 0x78};
 uint8_t rd[4];
 
 Coroutine test(Loop &loop, Buffer &buffer) {
-
-	int32_t address = STORAGE_ADDRESS;
-	buffer.setHeader(address);
+	buffer.setHeader<uint32_t>(FLASH_TEST_ADDRESS);
 	co_await buffer.read(4);
-	if (buffer.array<uint8_t>() == writeData) {
+	if (buffer.transferredArray<uint8_t>() == writeData) {
 		// blue indicates that the data is there from the last run
 		debug::setBlue();
 
@@ -23,7 +21,7 @@ Coroutine test(Loop &loop, Buffer &buffer) {
 
 		// also switch on red and green leds in case erase did not work
 		co_await buffer.read(4);
-		if (buffer.array<uint8_t>() == writeData) {
+		if (buffer.transferredArray<uint8_t>() == writeData) {
 			debug::setRed();
 			debug::setGreen();
 		}
@@ -32,12 +30,11 @@ Coroutine test(Loop &loop, Buffer &buffer) {
 		co_await buffer.erase();
 
 		// write data
-		buffer.set(writeData);
-		co_await buffer.write();
+		co_await buffer.writeArray(writeData);
 
 		// read data and check if equal
 		co_await buffer.read(4);
-		if (buffer.array<uint8_t>() == writeData) {
+		if (buffer.transferredArray<uint8_t>() == writeData) {
 			// green indicates that write and read was successful
 			debug::setGreen();
 		} else {

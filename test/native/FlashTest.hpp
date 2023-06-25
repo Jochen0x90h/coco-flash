@@ -6,10 +6,11 @@
 
 using namespace coco;
 
-constexpr int STORAGE_ADDRESS = 0;
+constexpr int FLASH_TEST_ADDRESS = 0;
 
 // drivers for FlashTest
 struct Drivers {
 	Loop_native loop;
-	FlashBuffer_File buffer{4 + 256, "flashTest.bin", 4096, 4};
+	Flash_File file{"flashTest.bin", 4096, 4096, 4};
+	Flash_File::Buffer buffer{file, 256};
 };

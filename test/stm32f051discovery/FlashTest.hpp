@@ -2,13 +2,15 @@
 
 #include <coco/platform/Loop_TIM2.hpp>
 #include <coco/platform/Flash_FLASH.hpp>
+#include <coco/board/config.hpp>
 
+
+using namespace coco;
+
+constexpr int FLASH_TEST_ADDRESS = FLASH_ADDRESS + FLASH_SIZE - Flash_FLASH::PAGE_SIZE;
 
 // drivers for FlashTest
 struct Drivers {
-	// flash start address
-	static constexpr int FLASH_ADDRESS = 0x8000000 + 32768;
-
-	coco::Loop_TIM2 loop;
-	coco::Flash_FLASH flash{FLASH_ADDRESS, 2, 4096};
+	Loop_TIM2 loop;
+	Flash_FLASH::Buffer<256> buffer;
 };
