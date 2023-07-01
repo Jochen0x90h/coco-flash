@@ -9,50 +9,57 @@ using namespace coco;
 const uint8_t writeData[] = {0x12, 0x34, 0x56, 0x78};
 uint8_t rd[4];
 
-
-void test(Flash &flash) {
-	Array<uint8_t, 4> readData(rd);
-
-	flash.readBlocking(0, readData);
-	if (readData == writeData) {
+Coroutine test(Loop &loop, Buffer &buffer) {
+	buffer.setHeader<uint32_t>(FLASH_TEST_ADDRESS);
+	co_await buffer.read(4);
+	if (buffer.transferredArray<uint8_t>() == writeData) {
 		// blue indicates that the data is there from the last run
 		debug::setBlue();
 
 		// erase
-		flash.eraseSectorBlocking(0);
+		co_await buffer.erase();
 
 		// also switch on red and green leds in case erase did not work
-		flash.readBlocking(0, readData);
-		if (readData == writeData) {
+		co_await buffer.read(4);
+		if (buffer.transferredArray<uint8_t>() == writeData) {
 			debug::setRed();
 			debug::setGreen();
 		}
-
-		return;
-	}
-
-	// erase
-	flash.eraseSectorBlocking(0);
-
-	// write data
-	flash.writeBlocking(0, writeData);
-
-	// read data and check if equal
-	flash.readBlocking(0, readData);
-	if (readData == writeData) {
-		// green indicates that write and read was successful
-		debug::setGreen();
 	} else {
-		// red indicates that write or read failed
-		debug::setRed();
+		// erase
+		co_await buffer.erase();
+
+		// write data
+		co_await buffer.writeArray(writeData);
+
+		// read data and check if equal
+		co_await buffer.read(4);
+		if (buffer.transferredArray<uint8_t>() == writeData) {
+			// green indicates that write and read was successful
+			debug::setGreen();
+		} else {
+			// red indicates that write or read failed
+			debug::setRed();
+		}
 	}
+
+#ifdef NATIVE
+	// ensure that the event loop has started
+	co_await loop.yield();
+
+	// exit event loop
+	loop.exit();
+
+	// bug: exit gets detected only if yield is pending
+	co_await loop.yield();
+#endif
 }
 
 int main() {
 	debug::init(); // for debug led's
 	Drivers drivers;
 
-	test(drivers.flash);
+	test(drivers.loop, drivers.buffer);
 
 	drivers.loop.run();
 }

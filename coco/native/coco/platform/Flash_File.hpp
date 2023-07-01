@@ -1,37 +1,47 @@
 #pragma once
 
-#include <coco/Flash.hpp>
+#include <coco/BufferImpl.hpp>
 #include <coco/platform/File.hpp>
-#include <string>
 
 
 namespace coco {
 
 /**
- * Implementation of a file based flash emulation
- */
-class Flash_File : public Flash {
+	Blocking implementation of flash interface based on files, mainly for testing purposes.
+*/
+class Flash_File {
 public:
 	/**
-	 * Constructor
-	 * @param filename name of file for the flash emulation
-	 * @param sectorCount number of sectors
-	 * @param sectorSize size of one sector
-	 * @param blockSize size of block that has to be written at once
-	 */
-	Flash_File(const fs::path &filename, int sectorCount, int sectorSize, int blockSize);
+		Constructor
+		@param name file name
+		@param size size of emulated flash
+		@param pageSize size of one page that can be erased at once
+		@param blockSize size of one block that can be written at once and is the read alignment
+	*/
+	Flash_File(String name, int size, int pageSize, int blockSize);
 
-	Info getInfo() override;
-	void eraseSectorBlocking(int sectorIndex) override;
-	void readBlocking(int address, void *data, int size) override;
-	void writeBlocking(int address, const void *data, int size) override;
-	using Flash::readBlocking;
-	using Flash::writeBlocking;
+	class Buffer : public BufferImpl {
+	public:
+		/**
+			Constructor
+		*/
+		Buffer(Flash_File &file, int size);
+		~Buffer() override;
+
+		bool setHeader(const uint8_t *data, int size) override;
+		using BufferImpl::setHeader;
+		bool startInternal(int size, Op op) override;
+		void cancel() override;
+
+	protected:
+		Flash_File &file;
+		uint32_t address = 0xf0000000; // invalid
+	};
 
 protected:
 	File file;
-	int sectorCount;
-	int sectorSize;
+	uint32_t size;
+	int pageSize;
 	int blockSize;
 };
 

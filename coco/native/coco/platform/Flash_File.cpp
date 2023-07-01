@@ -4,47 +4,75 @@
 
 namespace coco {
 
-Flash_File::Flash_File(const fs::path &filename, int sectorCount, int sectorSize, int blockSize)
-	: file(filename, File::Mode::READ_WRITE), sectorCount(sectorCount), sectorSize(sectorSize), blockSize(blockSize)
+Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
+	: file(fs::path(std::string(name.data(), name.size())), File::Mode::READ_WRITE)
+	, size(size), pageSize(pageSize), blockSize(blockSize)
 {
-	int size = sectorCount * sectorSize;
+	// assert that sizes are power of 2
+	assert((pageSize & (pageSize - 1)) == 0);
+	assert((blockSize & (blockSize - 1)) == 0);
 
-	// set size of emulated flash and initialize to 0xff if necessary
-	this->file.resize(size, 0xff);
+	// check that size consists of full pages
+	assert((size & (pageSize - 1)) == 0);
 }
 
-Flash::Info Flash_File::getInfo() {
-	return {this->sectorCount, this->sectorSize, this->blockSize};
+Flash_File::Buffer::Buffer(Flash_File &file, int size)
+	: BufferImpl(new uint8_t[size], size, Buffer::State::READY), file(file)
+{
 }
 
-void Flash_File::eraseSectorBlocking(int sectorIndex) {
-	// check range
-	assert(sectorIndex >= 0 && sectorIndex < this->sectorCount);
-
-	// erase sector
-	this->file.fill(sectorIndex * this->sectorSize, 0xff, this->sectorSize);
+Flash_File::Buffer::~Buffer() {
+	delete [] this->dat;
 }
 
-void Flash_File::readBlocking(int address, void *data, int size) {
-	// check block alignment
-	assert(address % this->blockSize == 0);
-
-	// check range
-	assert(address >= 0 && address + size <= this->sectorCount * this->sectorSize);
-
-	// read from file
-	this->file.read(address, data, size);
+bool Flash_File::Buffer::setHeader(const uint8_t *data, int size) {
+	if (size != 4) {
+		assert(false);
+		return false;
+	}
+	this->address = *reinterpret_cast<const uint32_t *>(data);
+	return true;
 }
 
-void Flash_File::writeBlocking(int address, const void *data, int size) {
-	// check block alignment
-	assert(address % this->blockSize == 0);
+bool Flash_File::Buffer::startInternal(int size, Op op) {
+	// check if READ, WRITE or ERASE flag is set
+	assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
-	// check range
-	assert(address >= 0 && address + size <= this->sectorCount * this->sectorSize);
+	// get address
+	auto address = this->address;
+	auto data = this->dat;
 
-	// write to file
-	this->file.write(address, data, size);
+	auto &file = this->file.file;
+	if ((op & Op::ERASE) == 0) {
+		// check alignment
+		assert(uint32_t(address + size) <= this->file.size && (address & (this->file.blockSize - 1)) == 0);
+		if ((op & Op::WRITE) == 0) {
+			// read
+			file.read(address, data, size);
+		} else {
+			// write
+			file.write(address, data, size);
+		}
+	} else {
+		// erase page
+
+		// align address to page
+		int pageSize = this->file.pageSize;
+		uint32_t a = address & (pageSize - 1);
+		assert(a < this->file.size);
+
+		// erase
+		const uint8_t erased[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+		for (int i = 0; i < pageSize; i += 16) {
+			file.write(a + i, erased, 16);
+		}
+	}
+
+	setReady(size);
+	return true;
+}
+
+void Flash_File::Buffer::cancel() {
 }
 
 } // namespace coco

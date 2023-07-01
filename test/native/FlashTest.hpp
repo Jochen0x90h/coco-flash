@@ -4,8 +4,13 @@
 #include <coco/platform/Flash_File.hpp>
 
 
+using namespace coco;
+
+constexpr uint32_t FLASH_TEST_ADDRESS = 0;
+
 // drivers for FlashTest
 struct Drivers {
-	coco::Loop_native loop;
-	coco::Flash_File flash{"flashTest.bin", 2, 4096, 4};
+	Loop_native loop;
+	Flash_File file{"flashTest.bin", 4096, 4096, 4};
+	Flash_File::Buffer buffer{file, 256};
 };
