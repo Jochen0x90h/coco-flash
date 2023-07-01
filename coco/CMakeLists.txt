@@ -1,7 +1,5 @@
 add_library(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
-	#PUBLIC FILE_SET headers TYPE HEADERS FILES
-	#	Flash.hpp
 	PRIVATE
 		dummy.cpp
 )

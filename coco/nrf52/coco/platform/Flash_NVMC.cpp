@@ -26,7 +26,7 @@ bool Flash_NVMC::BufferBase::startInternal(int size, Op op) {
 	if ((op & (Op::WRITE | Op::ERASE)) == 0) {
 		// read
 		auto src = (const uint32_t *)address;
-		auto end = src + (size >> 2);
+		auto end = src + ((size + 3) >> 2);
 		auto dst = (uint32_t *)data;
 		while (src < end) {
 			// read 4 bytes
@@ -34,25 +34,13 @@ bool Flash_NVMC::BufferBase::startInternal(int size, Op op) {
 			++src;
 			++dst;
 		}
-		int tail = size & 3;
-		if (tail > 0) {
-			auto d = (uint8_t *)dst;
-			auto s = (const uint8_t *)src;
-			do {
-				// read 1 byte
-				*d = *s;
-				++s;
-				++d;
-				--tail;
-			} while (tail > 0);
-		}
 	} else if ((op & Op::ERASE) == 0) {
 		// write
 		// set flash write mode
 		NRF_NVMC->CONFIG = N(NVMC_CONFIG_WEN, Wen);
 
 		auto src = (const uint32_t *)data;
-		auto end = src + (size >> 2);
+		auto end = src + ((size + 3) >> 2);
 		auto dst = (uint32_t *)address;
 		while (src < end) {
 			// write 4 bytes
@@ -63,29 +51,6 @@ bool Flash_NVMC::BufferBase::startInternal(int size, Op op) {
 
 			++src;
 			++dst;
-
-			// wait until flash is ready
-			while (!NRF_NVMC->READY) {}
-		}
-		int tail = size & 3;
-		if (tail > 0) {
-			auto s = (const uint8_t *)src + size;
-			uint32_t value = 0xffffffff;
-
-			do {
-				value <<= 8;
-
-				// read 1 byte
-				--s;
-				value |= *s;
-				--tail;
-			} while (tail > 0);
-
-			// write last 1-3 bytes
-			*dst = value;
-
-			// data memory barrier
-			__DMB();
 
 			// wait until flash is ready
 			while (!NRF_NVMC->READY) {}

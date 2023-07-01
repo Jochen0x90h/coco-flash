@@ -6,7 +6,7 @@
 
 using namespace coco;
 
-constexpr int FLASH_TEST_ADDRESS = 0;
+constexpr uint32_t FLASH_TEST_ADDRESS = 0;
 
 // drivers for FlashTest
 struct Drivers {

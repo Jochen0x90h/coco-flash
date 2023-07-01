@@ -7,7 +7,7 @@
 namespace coco {
 
 /**
-	Flash emulation based on file, mainly for testing purposes
+	Blocking implementation of flash interface based on files, mainly for testing purposes.
 */
 class Flash_File {
 public:
@@ -16,7 +16,7 @@ public:
 		@param name file name
 		@param size size of emulated flash
 		@param pageSize size of one page that can be erased at once
-		@param blockSize size of one block that can be written at once
+		@param blockSize size of one block that can be written at once and is the read alignment
 	*/
 	Flash_File(String name, int size, int pageSize, int blockSize);
 

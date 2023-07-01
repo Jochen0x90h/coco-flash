@@ -7,7 +7,7 @@
 
 using namespace coco;
 
-constexpr int FLASH_TEST_ADDRESS = FLASH_ADDRESS + 0xe0000 - Flash_NVMC::PAGE_SIZE;
+constexpr uint32_t FLASH_TEST_ADDRESS = FLASH_ADDRESS + 0xe0000 - Flash_NVMC::PAGE_SIZE;
 
 // drivers for FlashTest
 struct Drivers {

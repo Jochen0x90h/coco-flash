@@ -25,26 +25,14 @@ bool Flash_FLASH::BufferBase::startInternal(int size, Op op) {
 
 	if ((op & (Op::WRITE | Op::ERASE)) == 0) {
 		// read
-		auto src = (const uint32_t *)address;
-		auto end = src + (size >> 2);
-		auto dst = (uint32_t *)data;
+		auto src = (const uint16_t *)address;
+		auto end = src + ((size + 1) >> 1);
+		auto dst = (uint16_t *)data;
 		while (src < end) {
-			// read 4 bytes
+			// read 2 bytes
 			*dst = *src;
 			++src;
 			++dst;
-		}
-		int tail = size & 3;
-		if (tail > 0) {
-			auto d = (uint8_t *)dst;
-			auto s = (const uint8_t *)src;
-			do {
-				// read 1 byte
-				*d = *s;
-				++s;
-				++d;
-				--tail;
-			} while (tail > 0);
 		}
 	} else if ((op & Op::ERASE) == 0) {
 		// write
@@ -56,7 +44,7 @@ bool Flash_FLASH::BufferBase::startInternal(int size, Op op) {
 		FLASH->CR = FLASH_CR_PG;
 
 		auto src = (const uint16_t *)data;
-		auto end = src + (size >> 1);
+		auto end = src + ((size + 1) >> 1);
 		auto dst = (uint16_t *)address;
 		while (src < end) {
 			// write 2 bytes
@@ -67,27 +55,6 @@ bool Flash_FLASH::BufferBase::startInternal(int size, Op op) {
 
 			++src;
 			++dst;
-
-			// wait until flash is ready
-			while ((FLASH->SR & FLASH_SR_BSY) != 0) {}
-
-			// check result
-			if ((FLASH->SR & FLASH_SR_EOP) != 0) {
-				// ok
-				FLASH->SR = FLASH_SR_EOP;
-			} else {
-				// error
-			}
-		}
-		int tail = size & 1;
-		if (tail > 0) {
-			uint16_t value = 0xff00 | src[0];
-
-			// write last byte
-			*dst = value;
-
-			// data memory barrier
-			__DMB();
 
 			// wait until flash is ready
 			while ((FLASH->SR & FLASH_SR_BSY) != 0) {}

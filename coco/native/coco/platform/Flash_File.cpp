@@ -38,8 +38,6 @@ bool Flash_File::Buffer::startInternal(int size, Op op) {
 	// check if READ, WRITE or ERASE flag is set
 	assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
-	this->xferred = size;
-
 	// get address
 	auto address = this->address;
 	auto data = this->dat;
@@ -70,7 +68,7 @@ bool Flash_File::Buffer::startInternal(int size, Op op) {
 		}
 	}
 
-	setReady();
+	setReady(size);
 	return true;
 }
 

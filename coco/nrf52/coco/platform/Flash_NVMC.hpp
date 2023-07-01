@@ -6,7 +6,8 @@
 namespace coco {
 
 /**
-	Implementation of flash interface for nrf52
+	Blocking implementation of flash interface for nrf52.
+
 	Reference manual:
 		https://infocenter.nordicsemi.com/topic/ps_nrf52840/memory.html?cp=5_0_0_3_1_1#flash
 		https://infocenter.nordicsemi.com/index.jsp?topic=%2Fps_nrf52840%2Fnvmc.html&cp=5_0_0_3_2
@@ -19,7 +20,7 @@ namespace Flash_NVMC {
 	// size of a page that has to be erased at once
 	constexpr int PAGE_SIZE = 4096;
 
-	// size of a block that has to be written at once
+	// size of a block that has to be written at once and is the read alignment
 	constexpr int BLOCK_SIZE = 4;
 
 	class BufferBase : public BufferImpl {

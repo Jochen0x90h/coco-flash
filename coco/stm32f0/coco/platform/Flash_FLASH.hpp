@@ -6,7 +6,8 @@
 namespace coco {
 
 /**
-	Implementation of flash interface for stm32f0
+	Blocking implementation of flash interface for stm32f0.
+
 	Reference manual:
 		https://www.st.com/resource/en/reference_manual/dm00031936-stm32f0x1stm32f0x2stm32f0x8-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 			Flash: Section 3
@@ -18,7 +19,7 @@ namespace Flash_FLASH {
 	// size of a page that has to be erased at once
 	constexpr int PAGE_SIZE = 1024;
 
-	// size of a block that has to be written at once
+	// size of a block that has to be written at once and is the read alignment
 	constexpr int BLOCK_SIZE = 2;
 
 	class BufferBase : public BufferImpl {
