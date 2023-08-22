@@ -1,5 +1,6 @@
 #pragma once
 
+#include <coco/align.hpp>
 #include <coco/BufferImpl.hpp>
 
 
@@ -16,11 +17,27 @@ namespace coco {
 		FLASH: Flash controller
 */
 namespace Flash_FLASH {
+#ifdef STM32F0
 	// size of a page that has to be erased at once
 	constexpr int PAGE_SIZE = 1024;
 
 	// size of a block that has to be written at once and is the read alignment
 	constexpr int BLOCK_SIZE = 2;
+
+	using Block = uint16_t;
+#endif
+#ifdef STM32G4
+	// size of a page that has to be erased at once
+	constexpr int PAGE_SIZE = 2048;
+
+	// size of a block that has to be written at once and is the read alignment
+	constexpr int BLOCK_SIZE = 8;
+
+	struct Block {
+		uint32_t data[2];
+	};
+#endif
+
 
 	class BufferBase : public BufferImpl {
 	public:

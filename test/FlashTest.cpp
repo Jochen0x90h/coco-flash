@@ -6,40 +6,48 @@
 
 using namespace coco;
 
-const uint8_t writeData[] = {0x12, 0x34, 0x56, 0x78};
-uint8_t rd[4];
+const uint32_t writeData[] = {12345678, 0x9abcdef0};
+const uint32_t erasedData[] = {0xffffffff, 0xffffffff};
+uint32_t rd[2];
 
 Coroutine test(Loop &loop, Buffer &buffer) {
 	buffer.setHeader<uint32_t>(FLASH_TEST_ADDRESS);
-	co_await buffer.read(4);
-	if (buffer.transferredArray<uint8_t>() == writeData) {
+	co_await buffer.read(8);
+	if (buffer.transferredArray<uint32_t>() == writeData) {
 		// blue indicates that the data is there from the last run
-		debug::setBlue();
+		debug::set(debug::BLUE);
 
 		// erase
 		co_await buffer.erase();
 
-		// also switch on red and green leds in case erase did not work
-		co_await buffer.read(4);
-		if (buffer.transferredArray<uint8_t>() == writeData) {
-			debug::setRed();
-			debug::setGreen();
+		// check if erase worked
+		co_await buffer.read(8);
+		if (buffer.transferredArray<uint32_t>() != erasedData) {
+			debug::set(debug::BLACK);
 		}
 	} else {
 		// erase
 		co_await buffer.erase();
 
-		// write data
-		co_await buffer.writeArray(writeData);
+		// check if erase succeeded
+		co_await buffer.read(8);
+		if (buffer.transferredArray<uint32_t>() == erasedData) {
 
-		// read data and check if equal
-		co_await buffer.read(4);
-		if (buffer.transferredArray<uint8_t>() == writeData) {
-			// green indicates that write and read was successful
-			debug::setGreen();
+			// write data
+			co_await buffer.writeArray(writeData);
+
+			// read data and check if equal
+			co_await buffer.read(8);
+			if (buffer.transferredArray<uint32_t>() == writeData) {
+				// green indicates that write and read was successful
+				debug::set(debug::GREEN);
+			} else {
+				// error: write failed
+				debug::set(debug::RED);
+			}
 		} else {
-			// red indicates that write or read failed
-			debug::setRed();
+			// error: erase failed
+			debug::set(debug::MAGENTA);
 		}
 	}
 
@@ -49,14 +57,10 @@ Coroutine test(Loop &loop, Buffer &buffer) {
 
 	// exit event loop
 	loop.exit();
-
-	// bug: exit gets detected only if yield is pending
-	co_await loop.yield();
 #endif
 }
 
 int main() {
-	debug::init(); // for debug led's
 	Drivers drivers;
 
 	test(drivers.loop, drivers.buffer);
