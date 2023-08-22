@@ -1,6 +1,8 @@
 #include "Flash_FLASH.hpp"
 #include <coco/platform/platform.hpp>
+#include <coco/platform/nvic.hpp>
 #include <coco/assert.hpp>
+#include <coco/debug.hpp>
 
 
 namespace coco {
@@ -25,36 +27,77 @@ bool Flash_FLASH::BufferBase::startInternal(int size, Op op) {
 
 	if ((op & (Op::WRITE | Op::ERASE)) == 0) {
 		// read
-		auto src = (const uint16_t *)address;
-		auto end = src + ((size + 1) >> 1);
-		auto dst = (uint16_t *)data;
+		auto src = (const Block *)address;
+		auto end = src + ((size + sizeof(Block) - 1) / sizeof(Block));
+		auto dst = (Block *)data;
 		while (src < end) {
-			// read 2 bytes
+			// read block
 			*dst = *src;
 			++src;
 			++dst;
 		}
-	} else if ((op & Op::ERASE) == 0) {
-		// write
+	} else {
+		// write or erase
 		// unlock flash
 		FLASH->KEYR = 0x45670123;
 		FLASH->KEYR = 0xCDEF89AB;
 
-		// set flash write mode
-		FLASH->CR = FLASH_CR_PG;
+		// steps 1 and 2 in reference manual
+		while ((FLASH->SR & FLASH_SR_BSY) != 0) {}
+		FLASH->SR = 0xffff;
 
-		auto src = (const uint16_t *)data;
-		auto end = src + ((size + 1) >> 1);
-		auto dst = (uint16_t *)address;
-		while (src < end) {
-			// write 2 bytes
-			*dst = *src;
+		if ((op & Op::ERASE) == 0) {
+			// write
 
-			// data memory barrier
-			__DMB();
+			// set flash write mode
+			FLASH->CR = FLASH_CR_PG;
 
-			++src;
-			++dst;
+			auto src = (const Block *)data;
+			auto end = src + ((size + sizeof(Block) - 1) / sizeof(Block));
+			auto dst = (Block *)address;
+			while (src < end) {
+				// write block
+				*dst = *src;
+
+				// data memory barrier
+				__DMB();
+
+				++src;
+				++dst;
+
+				// wait until flash is ready
+				while ((FLASH->SR & FLASH_SR_BSY) != 0) {}
+
+				// check result
+				if ((FLASH->SR & FLASH_SR_EOP) != 0) {
+					// ok
+					FLASH->SR = FLASH_SR_EOP;
+				} else {
+					// error
+				}
+			}
+		} else {
+			// erase page
+#ifdef STM32F0
+			// set flash page erase mode
+			FLASH->CR = FLASH_CR_PER;
+
+			// set address of page to erase (must come after PER)
+			FLASH->AR = address;
+
+			// start page erase
+			FLASH->CR = FLASH_CR_PER | FLASH_CR_STRT;
+#endif
+#ifdef STM32G4
+			int page = (address - 0x8000000) >> 11;
+			int PNB = (page << FLASH_CR_PNB_Pos);
+
+			// set flash page erase mode
+			FLASH->CR = FLASH_CR_PER | PNB;
+
+			// start page erase
+			FLASH->CR = FLASH_CR_PER | PNB | FLASH_CR_STRT;
+#endif
 
 			// wait until flash is ready
 			while ((FLASH->SR & FLASH_SR_BSY) != 0) {}
@@ -68,36 +111,24 @@ bool Flash_FLASH::BufferBase::startInternal(int size, Op op) {
 			}
 		}
 
-		// lock flash (and clear PG bit)
+		// lock flash (and clear PG or PER bit)
 		FLASH->CR = FLASH_CR_LOCK;
-	} else {
-		// erase page
-		// unlock flash
-		FLASH->KEYR = 0x45670123;
-		FLASH->KEYR = 0xCDEF89AB;
 
-		// set page erase mode
-		FLASH->CR = FLASH_CR_PER;
+		// flush caches
+#ifdef FLASH_ACR_DCEN
+		// get ACR
+		uint32_t ACR = FLASH->ACR;
 
-		// set address of page to erase
-		FLASH->AR = address;
+		// disable caches
+		uint32_t disabled = ACR & ~(FLASH_ACR_DCEN | FLASH_ACR_ICEN);
+		FLASH->ACR = disabled;
 
-		// start page erase
-		FLASH->CR = FLASH_CR_PER | FLASH_CR_STRT;
+		// reset caches while disabled
+		FLASH->ACR = disabled | (FLASH_ACR_DCRST |  FLASH_ACR_ICRST);
 
-		// wait until flash is ready
-		while ((FLASH->SR & FLASH_SR_BSY) != 0) {}
-
-		// check result
-		if ((FLASH->SR & FLASH_SR_EOP) != 0) {
-			// ok
-			FLASH->SR = FLASH_SR_EOP;
-		} else {
-			// error
-		}
-
-		// lock flash (and clear PER bit)
-		FLASH->CR = FLASH_CR_LOCK;
+		// restore ACR
+		FLASH->ACR = ACR;
+#endif
 	}
 
 	setReady(size);

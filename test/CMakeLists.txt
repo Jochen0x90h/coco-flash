@@ -14,7 +14,7 @@ endmacro()
 foreach(COMPONENT ${coco-devboards_COMPONENT_NAMES})
 	string(REGEX REPLACE ".*\\:" "" BOARD ${COMPONENT})
 	message("*** Boad: ${BOARD}")
-	
+
 	# check if board specific header exists
 	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${BOARD}/FlashTest.hpp)
 		set(NAME "FlashTest-${BOARD}")
@@ -31,7 +31,7 @@ foreach(COMPONENT ${coco-devboards_COMPONENT_NAMES})
 		# find link.ld of board
 		get_target_property(INCLUDES ${COMPONENT} INTERFACE_INCLUDE_DIRECTORIES)
 		target_link_directories(${NAME}
-			PRIVATE	
+			PRIVATE
 				${INCLUDES}
 		)
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <coco/align.hpp>
 #include <coco/BufferImpl.hpp>
 
 
