@@ -7,28 +7,27 @@
 
 namespace coco {
 
-bool Flash_FLASH::BufferBase::setHeader(const uint8_t *data, int size) {
-	if (size != 4) {
-		assert(false);
-		return false;
-	}
-	this->address = *reinterpret_cast<const uint32_t *>(data);
-	return true;
-}
-
-bool Flash_FLASH::BufferBase::startInternal(int size, Op op) {
+bool Flash_FLASH::BufferBase::start(Op op) {
 	// check if READ, WRITE or ERASE flag is set
 	assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
+	int headerSize = this->p.headerSize;
+	auto data = this->p.data;
+	int size = this->p.size;
+
 	// get address and check alignment
-	uint32_t address = this->address;
+	if (headerSize != 4) {
+		// unsupported header size
+		assert(false);
+		return false;
+	}
+	uint32_t address = *(int32_t *)(data - 4);
 	assert((address & (BLOCK_SIZE - 1)) == 0);
-	auto data = this->dat;
 
 	if ((op & (Op::WRITE | Op::ERASE)) == 0) {
 		// read
 		auto src = (const Block *)address;
-		auto end = src + ((size + sizeof(Block) - 1) / sizeof(Block));
+		auto end = src + uint32_t(size + sizeof(Block) - 1) / sizeof(Block);
 		auto dst = (Block *)data;
 		while (src < end) {
 			// read block
@@ -53,7 +52,7 @@ bool Flash_FLASH::BufferBase::startInternal(int size, Op op) {
 			FLASH->CR = FLASH_CR_PG;
 
 			auto src = (const Block *)data;
-			auto end = src + ((size + sizeof(Block) - 1) / sizeof(Block));
+			auto end = src + uint32_t(size + sizeof(Block) - 1) / sizeof(Block);
 			auto dst = (Block *)address;
 			while (src < end) {
 				// write block
@@ -115,6 +114,7 @@ bool Flash_FLASH::BufferBase::startInternal(int size, Op op) {
 		FLASH->CR = FLASH_CR_LOCK;
 
 		// flush caches
+		// https://github.com/zephyrproject-rtos/zephyr/pull/32218/files#diff-20dbbd4b4adb0bda3e1b8f32c0e8db33501947942184928d542446d260a2eaae
 #ifdef FLASH_ACR_DCEN
 		// get ACR
 		uint32_t ACR = FLASH->ACR;
@@ -135,7 +135,8 @@ bool Flash_FLASH::BufferBase::startInternal(int size, Op op) {
 	return true;
 }
 
-void Flash_FLASH::BufferBase::cancel() {
+bool Flash_FLASH::BufferBase::cancel() {
+	return true;
 }
 
 } // namespace coco

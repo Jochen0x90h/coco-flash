@@ -44,14 +44,12 @@ namespace Flash_FLASH {
 		/**
 			Constructor
 		*/
-		BufferBase(uint8_t *data, int capacity) : BufferImpl(data, capacity, Buffer::State::READY) {}
+		BufferBase(int headerCapacity, uint8_t *data, int capacity) : BufferImpl(headerCapacity, data, capacity, Buffer::State::READY) {}
 
-		bool setHeader(const uint8_t *data, int size) override;
-		bool startInternal(int size, Op op) override;
-		void cancel() override;
+		bool start(Op op) override;
+		bool cancel() override;
 
 	protected:
-		uint32_t address = 1; // 1 is invalid
 	};
 
 	/**
@@ -62,10 +60,11 @@ namespace Flash_FLASH {
 	template <int N>
 	class Buffer : public BufferBase {
 	public:
-		Buffer() : BufferBase(data, align(N, BLOCK_SIZE)) {}
+		Buffer() : BufferBase(4, data + 4, align(N, BLOCK_SIZE)) {}
 
 	protected:
-		alignas(4) uint8_t data[align(N, BLOCK_SIZE)];
+		// align size because read/write operates on whole blocks
+		alignas(4) uint8_t data[4 + align(N, BLOCK_SIZE)];
 	};
 
 }

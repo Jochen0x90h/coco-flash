@@ -25,23 +25,26 @@ public:
 		/**
 			Constructor
 		*/
-		Buffer(Flash_File &file, int size);
+		Buffer(int size, Flash_File &file);
 		~Buffer() override;
 
-		bool setHeader(const uint8_t *data, int size) override;
-		using BufferImpl::setHeader;
-		bool startInternal(int size, Op op) override;
-		void cancel() override;
+		bool start(Op op) override;
+		bool cancel() override;
 
 	protected:
 		Flash_File &file;
-		uint32_t address = 0xf0000000; // invalid
 	};
 
 protected:
 	File file;
+
+	// size of emulated flash
 	uint32_t size;
+
+	// size of flash page (can be erased at once)
 	int pageSize;
+
+	// size of block (can be written at once)
 	int blockSize;
 };
 

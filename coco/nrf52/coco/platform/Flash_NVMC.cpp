@@ -5,23 +5,22 @@
 
 namespace coco {
 
-bool Flash_NVMC::BufferBase::setHeader(const uint8_t *data, int size) {
-	if (size != 4) {
-		assert(false);
-		return false;
-	}
-	this->address = *reinterpret_cast<const uint32_t *>(data);
-	return true;
-}
-
-bool Flash_NVMC::BufferBase::startInternal(int size, Op op) {
+bool Flash_NVMC::BufferBase::start(Op op) {
 	// check if READ, WRITE or ERASE flag is set
 	assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
+	int headerSize = this->p.headerSize;
+	auto data = this->p.data;
+	int size = this->p.size;
+
 	// get address and check alignment
-	uint32_t address = this->address;
+	if (headerSize != 4) {
+		// unsupported header size
+		assert(false);
+		return false;
+	}
+	uint32_t address = *(int32_t *)(data - 4);
 	assert((address & (BLOCK_SIZE - 1)) == 0);
-	auto data = this->dat;
 
 	if ((op & (Op::WRITE | Op::ERASE)) == 0) {
 		// read
@@ -77,7 +76,8 @@ bool Flash_NVMC::BufferBase::startInternal(int size, Op op) {
 	return true;
 }
 
-void Flash_NVMC::BufferBase::cancel() {
+bool Flash_NVMC::BufferBase::cancel() {
+	return true;
 }
 
 } // namespace coco

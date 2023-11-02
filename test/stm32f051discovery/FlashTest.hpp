@@ -15,3 +15,5 @@ struct Drivers {
 	Loop_TIM2 loop{CLOCK, Loop_TIM2::Mode::POLL};
 	Flash_FLASH::Buffer<256> buffer;
 };
+
+Drivers drivers;

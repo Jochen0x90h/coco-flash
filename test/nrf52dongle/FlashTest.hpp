@@ -15,3 +15,5 @@ struct Drivers {
 	Loop_RTC0 loop;
 	Flash_NVMC::Buffer<256> buffer;
 };
+
+Drivers drivers;

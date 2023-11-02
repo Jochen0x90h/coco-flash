@@ -16,36 +16,38 @@ Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
 	assert((size & (pageSize - 1)) == 0);
 }
 
-Flash_File::Buffer::Buffer(Flash_File &file, int size)
-	: BufferImpl(new uint8_t[size], size, Buffer::State::READY), file(file)
+// Buffer
+
+Flash_File::Buffer::Buffer(int size, Flash_File &file)
+	: BufferImpl(8, new uint8_t[size + 8] + 8, size, Buffer::State::READY), file(file)
 {
 }
 
 Flash_File::Buffer::~Buffer() {
-	delete [] this->dat;
+	delete [] (this->p.data - 8);
 }
 
-bool Flash_File::Buffer::setHeader(const uint8_t *data, int size) {
-	if (size != 4) {
-		assert(false);
-		return false;
-	}
-	this->address = *reinterpret_cast<const uint32_t *>(data);
-	return true;
-}
-
-bool Flash_File::Buffer::startInternal(int size, Op op) {
+bool Flash_File::Buffer::start(Op op) {
 	// check if READ, WRITE or ERASE flag is set
 	assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
-	// get address
-	auto address = this->address;
-	auto data = this->dat;
+	int headerSize = this->p.headerSize;
+	auto data = this->p.data;
+	auto size = this->p.size;
+
+	// get address and check alignment
+	if (headerSize != 4) {
+		// unsupported header size
+		assert(false);
+		return false;
+	}
+	uint32_t address = *(int32_t *)(data - 4);
+	assert((address & (this->file.blockSize - 1)) == 0);
 
 	auto &file = this->file.file;
 	if ((op & Op::ERASE) == 0) {
-		// check alignment
-		assert(uint32_t(address + size) <= this->file.size && (address & (this->file.blockSize - 1)) == 0);
+		// check range
+		assert(address + size <= this->file.size);
 		if ((op & Op::WRITE) == 0) {
 			// read
 			file.read(address, data, size);
@@ -68,11 +70,12 @@ bool Flash_File::Buffer::startInternal(int size, Op op) {
 		}
 	}
 
-	setReady(size);
+	setReady();
 	return true;
 }
 
-void Flash_File::Buffer::cancel() {
+bool Flash_File::Buffer::cancel() {
+	return true;
 }
 
 } // namespace coco
