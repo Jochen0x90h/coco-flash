@@ -77,7 +77,9 @@ bool Flash_FLASH::BufferBase::start(Op op) {
 			}
 		} else {
 			// erase page
-#ifdef STM32F0
+#ifdef FLASH_AR_FAR
+			// erase using address
+
 			// set flash page erase mode
 			FLASH->CR = FLASH_CR_PER;
 
@@ -87,8 +89,9 @@ bool Flash_FLASH::BufferBase::start(Op op) {
 			// start page erase
 			FLASH->CR = FLASH_CR_PER | FLASH_CR_STRT;
 #endif
-#ifdef STM32G4
-			int page = (address - 0x8000000) >> 11;
+#ifdef FLASH_CR_PNB
+			// erase using page index
+			int page = (address - 0x8000000u) / PAGE_SIZE;
 			int PNB = (page << FLASH_CR_PNB_Pos);
 
 			// set flash page erase mode

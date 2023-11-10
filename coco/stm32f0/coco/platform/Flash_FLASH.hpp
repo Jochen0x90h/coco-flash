@@ -21,22 +21,28 @@ namespace Flash_FLASH {
 	// size of a page that has to be erased at once
 	constexpr int PAGE_SIZE = 1024;
 
-	// size of a block that has to be written at once and is the read alignment
-	constexpr int BLOCK_SIZE = 2;
+	// block of data that has to be written at once and is the read alignment
+	using Block = uint16_t;
+#endif
+#ifdef STM32F3
+	// size of a page that has to be erased at once
+	constexpr int PAGE_SIZE = 2048;
 
+	// block of data that has to be written at once and is the read alignment
 	using Block = uint16_t;
 #endif
 #ifdef STM32G4
 	// size of a page that has to be erased at once
 	constexpr int PAGE_SIZE = 2048;
 
-	// size of a block that has to be written at once and is the read alignment
-	constexpr int BLOCK_SIZE = 8;
-
+	// block of data that has to be written at once and is the read alignment
 	struct Block {
 		uint32_t data[2];
 	};
 #endif
+
+	// size of a block that has to be written at once and is the read alignment
+	constexpr int BLOCK_SIZE = sizeof(Block);
 
 
 	class BufferBase : public BufferImpl {

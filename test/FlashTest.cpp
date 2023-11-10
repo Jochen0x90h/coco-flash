@@ -66,6 +66,7 @@ Coroutine test(Loop &loop, Buffer &buffer) {
 }
 
 int main() {
+	//debug::set(debug::BLUE);
 	test(drivers.loop, drivers.buffer);
 
 	drivers.loop.run();
