@@ -19,30 +19,33 @@ Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
 // Buffer
 
 Flash_File::Buffer::Buffer(int size, Flash_File &file)
-	: BufferImpl(8, new uint8_t[size + 8] + 8, size, Buffer::State::READY), file(file)
+	: BufferImpl(new uint8_t[4 + size], 4, size, Buffer::State::READY), file(file)
 {
 }
 
 Flash_File::Buffer::~Buffer() {
-	delete [] (this->p.data - 8);
+	delete [] this->p.data;
 }
 
 bool Flash_File::Buffer::start(Op op) {
 	// check if READ, WRITE or ERASE flag is set
 	assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
+	// get header
 	int headerSize = this->p.headerSize;
-	auto data = this->p.data;
-	auto size = this->p.size;
-
-	// get address and check alignment
 	if (headerSize != 4) {
 		// unsupported header size
 		assert(false);
 		return false;
 	}
-	uint32_t address = *(int32_t *)(data - 4);
+	auto header = this->p.data;
+
+	// get address and check alignment
+	uint32_t address = *(int32_t *)header;
 	assert((address & (this->file.blockSize - 1)) == 0);
+
+	auto data = this->p.data + headerSize;
+	auto size = this->p.size - headerSize;
 
 	auto &file = this->file.file;
 	if ((op & Op::ERASE) == 0) {

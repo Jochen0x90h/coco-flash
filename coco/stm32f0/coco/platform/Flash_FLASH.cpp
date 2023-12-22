@@ -11,18 +11,21 @@ bool Flash_FLASH::BufferBase::start(Op op) {
 	// check if READ, WRITE or ERASE flag is set
 	assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
+	// get header
 	int headerSize = this->p.headerSize;
-	auto data = this->p.data;
-	int size = this->p.size;
-
-	// get address and check alignment
 	if (headerSize != 4) {
 		// unsupported header size
 		assert(false);
 		return false;
 	}
-	uint32_t address = *(int32_t *)(data - 4);
+	auto header = this->p.data;
+
+	// get address and check alignment
+	uint32_t address = *(int32_t *)header;
 	assert((address & (BLOCK_SIZE - 1)) == 0);
+
+	auto data = header + headerSize;
+	int size = this->p.size - headerSize;
 
 	if ((op & (Op::WRITE | Op::ERASE)) == 0) {
 		// read

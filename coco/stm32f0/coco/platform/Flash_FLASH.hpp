@@ -50,7 +50,7 @@ namespace Flash_FLASH {
 		/**
 			Constructor
 		*/
-		BufferBase(int headerCapacity, uint8_t *data, int capacity) : BufferImpl(headerCapacity, data, capacity, Buffer::State::READY) {}
+		BufferBase(uint8_t *data, int capacity) : BufferImpl(data, 4, capacity, Buffer::State::READY) {}
 
 		bool start(Op op) override;
 		bool cancel() override;
@@ -61,16 +61,16 @@ namespace Flash_FLASH {
 	/**
 		Buffer for transferring data to/from internal flash
 		Capacity gets aligned to BLOCK_SIZE
-		@tparam N size of buffer
+		@tparam C capacity of buffer
 	*/
-	template <int N>
+	template <int C>
 	class Buffer : public BufferBase {
 	public:
-		Buffer() : BufferBase(4, data + 4, align(N, BLOCK_SIZE)) {}
+		Buffer() : BufferBase(data, align(C, BLOCK_SIZE)) {}
 
 	protected:
 		// align size because read/write operates on whole blocks
-		alignas(4) uint8_t data[4 + align(N, BLOCK_SIZE)];
+		alignas(4) uint8_t data[4 + align(C, BLOCK_SIZE)];
 	};
 
 }
