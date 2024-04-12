@@ -12,7 +12,7 @@ constexpr uint32_t FLASH_TEST_ADDRESS = FLASH_ADDRESS + FLASH_SIZE - Flash_FLASH
 
 // drivers for FlashTest
 struct Drivers {
-	Loop_TIM2 loop{CLOCK, Loop_TIM2::Mode::POLL};
+	Loop_TIM2 loop{SYS_CLOCK};
 	Flash_FLASH::Buffer<256> buffer;
 };
 

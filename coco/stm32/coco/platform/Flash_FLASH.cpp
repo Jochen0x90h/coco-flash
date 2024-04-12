@@ -5,6 +5,11 @@
 #include <coco/debug.hpp>
 
 
+#ifdef FLASH_SR_BSY1
+#define FLASH_SR_BSY FLASH_SR_BSY1
+#endif
+
+
 namespace coco {
 
 bool Flash_FLASH::BufferBase::start(Op op) {

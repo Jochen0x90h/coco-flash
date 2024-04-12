@@ -31,6 +31,15 @@ namespace Flash_FLASH {
 	// block of data that has to be written at once and is the read alignment
 	using Block = uint16_t;
 #endif
+#ifdef STM32C0
+	// size of a page that has to be erased at once
+	constexpr int PAGE_SIZE = 2048;
+
+	// block of data that has to be written at once and is the read alignment
+	struct Block {
+		uint32_t data[2];
+	};
+#endif
 #ifdef STM32G4
 	// size of a page that has to be erased at once
 	constexpr int PAGE_SIZE = 2048;
