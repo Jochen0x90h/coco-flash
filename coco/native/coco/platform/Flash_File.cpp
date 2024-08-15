@@ -16,10 +16,11 @@ Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
 	assert((size & (pageSize - 1)) == 0);
 }
 
+
 // Buffer
 
 Flash_File::Buffer::Buffer(int size, Flash_File &file)
-	: BufferImpl(new uint8_t[4 + size], 4, size, Buffer::State::READY), file(file)
+	: coco::Buffer(new uint8_t[4 + size], 4, size, Buffer::State::READY), file(file)
 {
 }
 

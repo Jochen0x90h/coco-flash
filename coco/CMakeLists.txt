@@ -19,6 +19,8 @@ elseif(${PLATFORM} MATCHES "^nrf52")
 		PRIVATE
 			nrf52/coco/platform/Flash_NVMC.cpp
 	)
+elseif(${PLATFORM} MATCHES "^stm32f4")
+	# not supported yet
 elseif(${PLATFORM} MATCHES "^stm32")
 	target_sources(${PROJECT_NAME}
 		PUBLIC FILE_SET platform_headers TYPE HEADERS BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/stm32 FILES
@@ -30,7 +32,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME}
 	coco::coco
-	coco-buffer::coco-buffer
+	coco-device::coco-device
 )
 
 target_include_directories(${PROJECT_NAME}

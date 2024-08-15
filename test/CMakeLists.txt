@@ -1,8 +1,10 @@
-function(board_test TEST TARGET)
-	#message("*** Target: ${TARGET}")
-	# check if target exists
-	if(TARGET ${TARGET})
-		string(REGEX REPLACE ".*\\:" "" BOARD ${TARGET})
+# Generate a test for a board
+# TEST the test application, implemented in ${TEST}.cpp
+# BOARD_LIB a library for a board containing SystemInit() and a linker script for embedded platforms
+function(board_test TEST BOARD_LIB)
+	# check if board library exists for the current platform
+	if(TARGET ${BOARD_LIB})
+		string(REGEX REPLACE ".*\\:" "" BOARD ${BOARD_LIB})
 		set(NAME "${TEST}-${BOARD}")
 		message("*** Board: ${BOARD}")
 
@@ -15,8 +17,7 @@ function(board_test TEST TARGET)
 				${BOARD}
 		)
 		target_link_libraries(${NAME}
-			${TARGET}
-			coco-loop::coco-loop
+			${BOARD_LIB}
 			${PROJECT_NAME}
 		)
 
@@ -30,8 +31,6 @@ function(board_test TEST TARGET)
 		endif()
 	endif()
 endfunction()
-
-#message("*** coco-devboards: ${coco-devboards_COMPONENT_NAMES}")
 
 board_test(FlashTest coco-devboards::native)
 board_test(FlashTest coco-devboards::nrf52dongle)
