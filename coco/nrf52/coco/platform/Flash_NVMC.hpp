@@ -1,58 +1,59 @@
 #pragma once
 
 #include <coco/align.hpp>
-#include <coco/BufferImpl.hpp>
+#include <coco/Buffer.hpp>
 
 
 namespace coco {
 
 /**
-	Blocking implementation of flash interface for nrf52.
-
-	Reference manual:
-		https://infocenter.nordicsemi.com/topic/ps_nrf52840/memory.html?cp=5_0_0_3_1_1#flash
-		https://infocenter.nordicsemi.com/index.jsp?topic=%2Fps_nrf52840%2Fnvmc.html&cp=5_0_0_3_2
-
-	Resources:
-		NRF_NVMC
-*/
+ * Blocking implementation of flash interface for nrf52.
+ *
+ * Reference manual:
+ *   https://infocenter.nordicsemi.com/topic/ps_nrf52840/memory.html?cp=5_0_0_3_1_1#flash
+ *   https://infocenter.nordicsemi.com/index.jsp?topic=%2Fps_nrf52840%2Fnvmc.html&cp=5_0_0_3_2
+ *
+ * Resources:
+ *   NRF_NVMC
+ */
 namespace Flash_NVMC {
 
-	// size of a page that has to be erased at once
-	constexpr int PAGE_SIZE = 4096;
+    // size of a page that has to be erased at once
+    constexpr int PAGE_SIZE = 4096;
 
-	// size of a block that has to be written at once and is the read alignment
-	constexpr int BLOCK_SIZE = 4;
+    // size of a block that has to be written at once and is the read alignment
+    constexpr int BLOCK_SIZE = 4;
 
-	class BufferBase : public BufferImpl {
-	public:
+    using Block = uint32_t;
 
-		/**
-			Constructor
-		*/
-		BufferBase(uint8_t *data, int capacity) : BufferImpl(data, capacity, Buffer::State::READY) {}
 
-		bool setHeader(const uint8_t *data, int size) override;
-		bool startInternal(int size, Op op) override;
-		void cancel() override;
+    class BufferBase : public coco::Buffer {
+    public:
+        /**
+         * Constructor
+         */
+        BufferBase(uint8_t *data, int capacity) : coco::Buffer(data, 4, capacity, Buffer::State::READY) {}
 
-	protected:
-		uint32_t address = 1; // 1 is invalid
-	};
+        bool start(Op op) override;
+        bool cancel() override;
 
-	/**
-		Buffer for transferring data to/from internal flash.
-		Capacity gets aligned to BLOCK_SIZE
-		@tparam N size of buffer
-	*/
-	template <int N>
-	class Buffer : public BufferBase {
-	public:
-		Buffer() : BufferBase(data, align(N, BLOCK_SIZE)) {}
+    protected:
+    };
 
-	protected:
-		alignas(4) uint8_t data[align(N, BLOCK_SIZE)];
-	};
+    /**
+     * Buffer for transferring data to/from internal flash.
+     * Capacity gets aligned to BLOCK_SIZE
+     * @tparam C capacity of buffer
+     */
+    template <int C>
+    class Buffer : public BufferBase {
+    public:
+        Buffer() : BufferBase(data, align(C, BLOCK_SIZE)) {}
+
+    protected:
+        // align size because read/write operates on whole blocks
+        alignas(4) uint8_t data[4 + align(C, BLOCK_SIZE)];
+    };
 }
 
 } // namespace coco
