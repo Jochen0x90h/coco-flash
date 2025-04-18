@@ -9,6 +9,11 @@
 #define FLASH_SR_BSY FLASH_SR_BSY1
 #endif
 
+#if defined(STM32U5) || defined(STM32H5)
+#define KEYR NSKEYR
+#define CR NSCR
+#define SR NSSR
+#endif
 
 namespace coco {
 
@@ -49,8 +54,10 @@ bool Flash_FLASH::BufferBase::start(Op op) {
         FLASH->KEYR = 0x45670123;
         FLASH->KEYR = 0xCDEF89AB;
 
-        // steps 1 and 2 in reference manual
+        // wait until busy flag is clear (see reference manual)
         while ((FLASH->SR & FLASH_SR_BSY) != 0) {}
+
+        // clear status flags
         FLASH->SR = 0xffff;
 
         if ((op & Op::ERASE) == 0) {
@@ -129,24 +136,32 @@ bool Flash_FLASH::BufferBase::start(Op op) {
             }
         }
 
-        // lock flash (and clear PG or PER bit)
+        // lock flash and clear PG or PER bit
         FLASH->CR = FLASH_CR_LOCK;
 
         // flush caches
-        // https://github.com/zephyrproject-rtos/zephyr/pull/32218/files#diff-20dbbd4b4adb0bda3e1b8f32c0e8db33501947942184928d542446d260a2eaae
 #ifdef FLASH_ACR_DCEN
+        // G4: https://github.com/zephyrproject-rtos/zephyr/pull/32218/files#diff-20dbbd4b4adb0bda3e1b8f32c0e8db33501947942184928d542446d260a2eaae
+
         // get ACR
-        uint32_t ACR = FLASH->ACR;
+        uint32_t acr = FLASH->ACR;
 
         // disable caches
-        uint32_t disabled = ACR & ~(FLASH_ACR_DCEN | FLASH_ACR_ICEN);
+        uint32_t disabled = acr & ~(FLASH_ACR_DCEN | FLASH_ACR_ICEN);
         FLASH->ACR = disabled;
 
         // reset caches while disabled
         FLASH->ACR = disabled | (FLASH_ACR_DCRST |  FLASH_ACR_ICRST);
 
         // restore ACR
-        FLASH->ACR = ACR;
+        FLASH->ACR = acr;
+#endif
+#ifdef ICACHE
+        // U3 U5 H5
+        #undef CR
+
+        // invalidate cache
+        ICACHE->CR = ICACHE->CR | ICACHE_CR_CACHEINV;
 #endif
     }
 

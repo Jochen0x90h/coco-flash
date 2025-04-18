@@ -19,7 +19,7 @@ Coroutine test(Loop &loop, Buffer &buffer) {
     buffer.setHeader<uint32_t>(FLASH_TEST_ADDRESS);
     co_await buffer.read(8);
     if (buffer.array<uint32_t>() == writeData) {
-        debug::out << "Data found from last run, erase\n";
+        debug::out << "Data found from last run, erase ";
 #ifndef NATIVE
         // blue indicates that the data is there from the last run
         debug::set(debug::BLUE);
@@ -29,41 +29,46 @@ Coroutine test(Loop &loop, Buffer &buffer) {
 
         // check if erase worked
         co_await buffer.read(8);
-        if (buffer.array<uint32_t>() != erasedData) {
-            debug::out << "Error: Erase\n";
+        if (buffer.array<uint32_t>() == erasedData) {
+            debug::out << "success!\n";
+        } else {
+            debug::out << "error!\n";
 #ifndef NATIVE
             debug::set(debug::BLACK);
 #endif
         }
     } else {
         // erase
+        debug::out << "Erase ";
         co_await buffer.erase();
 
         // check if erase succeeded
         co_await buffer.read(8);
         if (buffer.array<uint32_t>() == erasedData) {
+            debug::out << "success!\n";
 
             // write data
+            debug::out << "Write ";
             co_await buffer.writeArray(writeData);
 
             // read data and check if equal
             co_await buffer.read(8);
             if (buffer.array<uint32_t>() == writeData) {
-                debug::out << "Success\n";
+                debug::out << "success!\n";
 #ifndef NATIVE
                 // green indicates that write and read was successful
                 debug::set(debug::GREEN);
 #endif
             } else {
                 // error: write failed
-                debug::out << "Error: Write\n";
+                debug::out << "error!\n";
 #ifndef NATIVE
                 debug::set(debug::RED);
 #endif
             }
         } else {
             // error: erase failed
-            debug::out << "Error: Erase\n";
+            debug::out << "error!\n";
 #ifndef NATIVE
             debug::set(debug::MAGENTA);
 #endif
