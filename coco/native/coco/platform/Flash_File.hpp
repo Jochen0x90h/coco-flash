@@ -7,33 +7,29 @@
 
 namespace coco {
 
-/**
- * Blocking implementation of flash interface based on files, mainly for testing purposes.
- */
+/// @brief Blocking implementation of flash buffer based on files, mainly for testing purposes.
+///
 class Flash_File {
 public:
-    /**
-     * Constructor
-     * @param name file name
-     * @param size size of emulated flash
-     * @param pageSize size of one page that can be erased at once
-     * @param blockSize size of one block that can be written at once and is the read alignment
-     */
+    /// @brief Constructor
+    /// @param name File name
+    /// @param size Size of emulated flash
+    /// @param pageSize Size of one page that can be erased at once
+    /// @param blockSize Size of one block that can be written at once and is the read alignment
     Flash_File(String name, int size, int pageSize, int blockSize);
 
     class Buffer : public coco::Buffer {
     public:
-        /**
-         * Constructor
-         */
-        Buffer(int size, Flash_File &file);
+        /// @brief Constructor.
+        ///
+        Buffer(int size, Flash_File &device);
         ~Buffer() override;
 
         bool start(Op op) override;
         bool cancel() override;
 
     protected:
-        Flash_File &file;
+        Flash_File &device;
     };
 
 protected:

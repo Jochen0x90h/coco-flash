@@ -19,8 +19,8 @@ Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
 
 // Buffer
 
-Flash_File::Buffer::Buffer(int size, Flash_File &file)
-    : coco::Buffer(new uint8_t[4 + size], 4, size, Buffer::State::READY), file(file)
+Flash_File::Buffer::Buffer(int size, Flash_File &device)
+    : coco::Buffer(new uint8_t[4 + size], 4, size, Buffer::State::READY), device(device)
 {
 }
 
@@ -43,15 +43,15 @@ bool Flash_File::Buffer::start(Op op) {
 
     // get address and check alignment
     uint32_t address = *(int32_t *)header;
-    assert((address & (this->file.blockSize - 1)) == 0);
+    assert((address & (this->device.blockSize - 1)) == 0);
 
     auto data = this->p.data + headerSize;
     auto size = this->p.size - headerSize;
 
-    auto &file = this->file.file;
+    auto &file = this->device.file;
     if ((op & Op::ERASE) == 0) {
         // check range
-        assert(address + size <= this->file.size);
+        assert(address + size <= this->device.size);
         if ((op & Op::WRITE) == 0) {
             // read
             file.read(address, data, size);
@@ -63,9 +63,9 @@ bool Flash_File::Buffer::start(Op op) {
         // erase page
 
         // align address to page
-        int pageSize = this->file.pageSize;
+        int pageSize = this->device.pageSize;
         uint32_t a = address & (pageSize - 1);
-        assert(a < this->file.size);
+        assert(a < this->device.size);
 
         // erase
         const uint8_t erased[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};

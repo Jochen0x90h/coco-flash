@@ -5,13 +5,14 @@
 
 
 // Flash test
+// Check debug output in a terminal (115200 8N1)
 // Green indicates that data was successfully written
-// Blue indicates that data was present from last run and was erased
-// Power cycling should cause in toggle between green and blue
+// Blue indicates that data was present from last run and was erased (off when no blue LED is present)
+// Power cycling should cause in toggle between green and blue (off)
 
 using namespace coco;
 
-const uint32_t writeData[] = {12345678, 0x9abcdef0};
+const uint32_t writeData[] = {0x12345678, 0x9abcdef0};
 const uint32_t erasedData[] = {0xffffffff, 0xffffffff};
 uint32_t rd[2];
 
