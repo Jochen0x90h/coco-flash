@@ -7,7 +7,7 @@
 
 namespace coco {
 
-/// @brief Blocking implementation of flash buffer based on coco::flash HAL.
+/// @brief Blocking implementation of flash buffer based on coco::flash hardware abstraction layer.
 ///
 class Flash_flash {
 public:
@@ -17,16 +17,19 @@ public:
 
     class BufferBase : public coco::Buffer {
     public:
-        /// @brief
-        /// Constructor
+        /// @brief Constructor.
+        /// The header capacity is always 4
+        /// @param headerAndData Header and data buffer
+        /// @param capacity Buffer capacity
         BufferBase(uint8_t *data, int capacity, Flash_flash &device)
-            : coco::Buffer(data, 4, capacity, Buffer::State::READY), device(device) {}
+            : coco::Buffer(&address, 4, 0, data, capacity, Buffer::State::READY), device(device) {}
 
         bool start(Op op) override;
         bool cancel() override;
 
     protected:
         Flash_flash &device;
+        uint32_t address;
     };
 
     /// @brief Buffer for transferring data to/from internal flash
@@ -39,7 +42,7 @@ public:
 
     protected:
         // align size because read/write operates on whole blocks
-        alignas(4) uint8_t data[4 + align(C, flash::BLOCK_SIZE)];
+        alignas(4) uint8_t data[align(C, flash::BLOCK_SIZE)];
     };
 
 protected:

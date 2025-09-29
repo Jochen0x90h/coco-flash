@@ -19,8 +19,8 @@ Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
 
 // Buffer
 
-Flash_File::Buffer::Buffer(int size, Flash_File &device)
-    : coco::Buffer(new uint8_t[4 + size], 4, size, Buffer::State::READY), device(device)
+Flash_File::Buffer::Buffer(int capacity, Flash_File &device)
+    : coco::Buffer(&address, 4, 0, new uint8_t[capacity], capacity, Buffer::State::READY), device(device)
 {
 }
 
@@ -32,21 +32,13 @@ bool Flash_File::Buffer::start(Op op) {
     // check if READ, WRITE or ERASE flag is set
     assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
-    // get header
-    int headerSize = this->p.headerSize;
-    if (headerSize != 4) {
-        // unsupported header size
-        assert(false);
-        return false;
-    }
-    auto header = this->p.data;
-
-    // get address and check alignment
-    uint32_t address = *(int32_t *)header;
+    // get address from header and check alignment
+    auto address = this->address;
     assert((address & (this->device.blockSize - 1)) == 0);
 
-    auto data = this->p.data + headerSize;
-    auto size = this->p.size - headerSize;
+        // get data and size
+    auto data = this->p.data;
+    auto size = this->p.size;
 
     auto &file = this->device.file;
     if ((op & Op::ERASE) == 0) {

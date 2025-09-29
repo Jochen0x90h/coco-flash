@@ -20,12 +20,13 @@ Coroutine test(Loop &loop, Buffer &buffer) {
     buffer.setHeader<uint32_t>(FLASH_TEST_ADDRESS);
     co_await buffer.read(8);
     if (buffer.array<uint32_t>() == writeData) {
-        debug::out << "Data found from last run, erase ";
+        debug::out << "Data found from last run\n";
 #ifndef NATIVE
         // blue indicates that the data is there from the last run
         debug::set(debug::BLUE);
 #endif
         // erase
+        debug::out << "Erase ";
         co_await buffer.erase();
 
         // check if erase worked

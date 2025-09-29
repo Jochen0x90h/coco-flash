@@ -21,8 +21,9 @@ public:
     class Buffer : public coco::Buffer {
     public:
         /// @brief Constructor.
-        ///
-        Buffer(int size, Flash_File &device);
+        /// The header capacity is always 4
+        /// @param capacity Buffer capacity
+        Buffer(int capacity, Flash_File &device);
         ~Buffer() override;
 
         bool start(Op op) override;
@@ -30,6 +31,7 @@ public:
 
     protected:
         Flash_File &device;
+        uint32_t address;
     };
 
 protected:
