@@ -13,7 +13,7 @@ class Flash_flash {
 public:
     /// @brief Constructor
     /// @param eraseSize Size to erase, partial flash pages are erased entirely
-    Flash_flash(int eraseSize = 1) : eraseSize(eraseSize) {}
+    Flash_flash(int eraseSize = 1) : eraseSize_(eraseSize) {}
 
     class BufferBase : public coco::Buffer {
     public:
@@ -22,14 +22,14 @@ public:
         /// @param headerAndData Header and data buffer
         /// @param capacity Buffer capacity
         BufferBase(uint8_t *data, int capacity, Flash_flash &device)
-            : coco::Buffer(&address, 4, 0, data, capacity, Buffer::State::READY), device(device) {}
+            : coco::Buffer(&address_, 4, 0, data, capacity, Buffer::State::READY), device_(device) {}
 
         bool start(Op op) override;
         bool cancel() override;
 
     protected:
-        Flash_flash &device;
-        uint32_t address;
+        Flash_flash &device_;
+        uint32_t address_;
     };
 
     /// @brief Buffer for transferring data to/from internal flash
@@ -47,7 +47,7 @@ public:
 
 protected:
     // size of flash page (can be erased at once)
-    int eraseSize;
+    int eraseSize_;
 };
 
 } // namespace coco

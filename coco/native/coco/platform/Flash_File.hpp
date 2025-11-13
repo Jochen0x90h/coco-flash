@@ -30,21 +30,21 @@ public:
         bool cancel() override;
 
     protected:
-        Flash_File &device;
-        uint32_t address;
+        Flash_File &device_;
+        uint32_t address_;
     };
 
 protected:
-    File file;
+    File file_;
 
     // size of emulated flash
-    uint32_t size;
+    uint32_t size_;
 
     // size of flash page (can be erased at once)
-    int pageSize;
+    int pageSize_;
 
     // size of block (can be written at once)
-    int blockSize;
+    int blockSize_;
 };
 
 } // namespace coco

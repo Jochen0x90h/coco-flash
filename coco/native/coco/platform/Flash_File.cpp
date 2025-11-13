@@ -5,8 +5,8 @@
 namespace coco {
 
 Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
-    : file(fs::path(std::string(name.data(), name.size())), File::Mode::READ_WRITE)
-    , size(size), pageSize(pageSize), blockSize(blockSize)
+    : file_(fs::path(std::string(name.data(), name.size())), File::Mode::READ_WRITE)
+    , size_(size), pageSize_(pageSize), blockSize_(blockSize)
 {
     // assert that sizes are power of 2
     assert((pageSize & (pageSize - 1)) == 0);
@@ -20,12 +20,12 @@ Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
 // Buffer
 
 Flash_File::Buffer::Buffer(int capacity, Flash_File &device)
-    : coco::Buffer(&address, 4, 0, new uint8_t[capacity], capacity, Buffer::State::READY), device(device)
+    : coco::Buffer(&address_, 4, 0, new uint8_t[capacity], capacity, Buffer::State::READY), device_(device)
 {
 }
 
 Flash_File::Buffer::~Buffer() {
-    delete [] this->p.data;
+    delete [] data_;
 }
 
 bool Flash_File::Buffer::start(Op op) {
@@ -33,17 +33,17 @@ bool Flash_File::Buffer::start(Op op) {
     assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
     // get address from header and check alignment
-    auto address = this->address;
-    assert((address & (this->device.blockSize - 1)) == 0);
+    auto address = address_;
+    assert((address & (device_.blockSize_ - 1)) == 0);
 
         // get data and size
-    auto data = this->p.data;
-    auto size = this->p.size;
+    auto data = data_;
+    auto size = size_;
 
-    auto &file = this->device.file;
+    auto &file = device_.file_;
     if ((op & Op::ERASE) == 0) {
         // check range
-        assert(address + size <= this->device.size);
+        assert(address + size <= device_.size_);
         if ((op & Op::WRITE) == 0) {
             // read
             file.read(address, data, size);
@@ -55,9 +55,9 @@ bool Flash_File::Buffer::start(Op op) {
         // erase page
 
         // align address to page
-        int pageSize = this->device.pageSize;
+        int pageSize = device_.pageSize_;
         uint32_t a = address & (pageSize - 1);
-        assert(a < this->device.size);
+        assert(a < device_.size_);
 
         // erase
         const uint8_t erased[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
