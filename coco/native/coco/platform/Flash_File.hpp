@@ -11,7 +11,7 @@ namespace coco {
 ///
 class Flash_File {
 public:
-    /// @brief Constructor
+    /// @brief Constructor.
     /// @param name File name
     /// @param size Size of emulated flash
     /// @param pageSize Size of one page that can be erased at once

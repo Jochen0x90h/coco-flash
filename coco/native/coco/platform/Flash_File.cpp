@@ -1,5 +1,5 @@
 #include "Flash_File.hpp"
-#include <coco/assert.hpp>
+#include <cassert>
 
 
 namespace coco {

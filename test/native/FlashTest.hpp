@@ -6,7 +6,10 @@
 
 using namespace coco;
 
+constexpr uint32_t FLASH_ADDRESS = 0;
+constexpr uint32_t FLASH_SIZE = 4096;
 constexpr uint32_t FLASH_TEST_ADDRESS = 0;
+constexpr uint32_t FLASH_TEST_SIZE = 4096;
 
 // drivers for FlashTest
 struct Drivers {

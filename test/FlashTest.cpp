@@ -1,4 +1,5 @@
 #include <coco/loop.hpp>
+#include <coco/convert.hpp>
 #include <coco/debug.hpp>
 #include <coco/Array.hpp>
 #include <FlashTest.hpp>
@@ -84,7 +85,10 @@ Coroutine test(Loop &loop, Buffer &buffer) {
 }
 
 int main() {
-    //debug::set(debug::BLUE);
+    debug::out << "FlashTest\n";
+    debug::out << "FLASH_ADDRESS " << hex(FLASH_ADDRESS) << '\n';
+    debug::out << "FLASH_SIZE " << hex(FLASH_SIZE) << '\n';
+
     test(drivers.loop, drivers.buffer);
 
     drivers.loop.run();

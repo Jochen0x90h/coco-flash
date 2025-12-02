@@ -8,8 +8,7 @@
 using namespace coco;
 
 // address of last page in flash memory
-constexpr uint32_t FLASH_TEST_ADDRESS = FLASH_ADDRESS + FLASH_SIZE - flash::PAGE_SIZE;
-constexpr uint32_t FLASH_TEST_SIZE = flash::PAGE_SIZE;
+const uint32_t FLASH_TEST_ADDRESS = FLASH_ADDRESS + FLASH_SIZE - flash::PAGE_SIZE;
 
 // drivers for FlashTest
 struct Drivers {
