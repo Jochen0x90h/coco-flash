@@ -42,7 +42,7 @@ bool Flash_File::Buffer::start(Op op) {
 
     auto &file = device_.file_;
     if ((op & Op::ERASE) == 0) {
-        // check range
+        // read or write: check range
         assert(address + size <= device_.size_);
         if ((op & Op::WRITE) == 0) {
             // read
