@@ -1,12 +1,12 @@
 #include "Flash_File.hpp"
-#include <coco/assert.hpp>
+#include <cassert>
 
 
 namespace coco {
 
 Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
-    : file(fs::path(std::string(name.data(), name.size())), File::Mode::READ_WRITE)
-    , size(size), pageSize(pageSize), blockSize(blockSize)
+    : file_(fs::path(std::string(name.data(), name.size())), File::Mode::READ_WRITE)
+    , size_(size), pageSize_(pageSize), blockSize_(blockSize)
 {
     // assert that sizes are power of 2
     assert((pageSize & (pageSize - 1)) == 0);
@@ -19,39 +19,31 @@ Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
 
 // Buffer
 
-Flash_File::Buffer::Buffer(int size, Flash_File &file)
-    : coco::Buffer(new uint8_t[4 + size], 4, size, Buffer::State::READY), file(file)
+Flash_File::Buffer::Buffer(int capacity, Flash_File &device)
+    : coco::Buffer(&address_, 4, 0, new uint8_t[capacity], capacity, Buffer::State::READY), device_(device)
 {
 }
 
 Flash_File::Buffer::~Buffer() {
-    delete [] this->p.data;
+    delete [] data_;
 }
 
 bool Flash_File::Buffer::start(Op op) {
     // check if READ, WRITE or ERASE flag is set
     assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
 
-    // get header
-    int headerSize = this->p.headerSize;
-    if (headerSize != 4) {
-        // unsupported header size
-        assert(false);
-        return false;
-    }
-    auto header = this->p.data;
+    // get address from header and check alignment
+    auto address = address_;
+    assert((address & (device_.blockSize_ - 1)) == 0);
 
-    // get address and check alignment
-    uint32_t address = *(int32_t *)header;
-    assert((address & (this->file.blockSize - 1)) == 0);
+        // get data and size
+    auto data = data_;
+    auto size = size_;
 
-    auto data = this->p.data + headerSize;
-    auto size = this->p.size - headerSize;
-
-    auto &file = this->file.file;
+    auto &file = device_.file_;
     if ((op & Op::ERASE) == 0) {
-        // check range
-        assert(address + size <= this->file.size);
+        // read or write: check range
+        assert(address + size <= device_.size_);
         if ((op & Op::WRITE) == 0) {
             // read
             file.read(address, data, size);
@@ -63,9 +55,9 @@ bool Flash_File::Buffer::start(Op op) {
         // erase page
 
         // align address to page
-        int pageSize = this->file.pageSize;
+        int pageSize = device_.pageSize_;
         uint32_t a = address & (pageSize - 1);
-        assert(a < this->file.size);
+        assert(a < device_.size_);
 
         // erase
         const uint8_t erased[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
