@@ -18,14 +18,14 @@ const uint32_t erasedData[] = {0xffffffff, 0xffffffff};
 uint32_t rd[2];
 
 Coroutine test(Loop &loop, Buffer &buffer) {
-    buffer.setHeader<uint32_t>(FLASH_TEST_ADDRESS);
+    buffer.header<uint32_t>() = FLASH_TEST_ADDRESS;
     co_await buffer.read(8);
     if (buffer.array<uint32_t>() == writeData) {
         debug::out << "Data found from last run\n";
-#ifndef NATIVE
+
         // blue indicates that the data is there from the last run
         debug::set(debug::BLUE);
-#endif
+
         // erase
         debug::out << "Erase ";
         co_await buffer.erase();
@@ -36,9 +36,7 @@ Coroutine test(Loop &loop, Buffer &buffer) {
             debug::out << "success!\n";
         } else {
             debug::out << "error!\n";
-#ifndef NATIVE
             debug::set(debug::BLACK);
-#endif
         }
     } else {
         // erase
@@ -58,23 +56,18 @@ Coroutine test(Loop &loop, Buffer &buffer) {
             co_await buffer.read(8);
             if (buffer.array<uint32_t>() == writeData) {
                 debug::out << "success!\n";
-#ifndef NATIVE
+
                 // green indicates that write and read was successful
                 debug::set(debug::GREEN);
-#endif
             } else {
                 // error: write failed
                 debug::out << "error!\n";
-#ifndef NATIVE
                 debug::set(debug::RED);
-#endif
             }
         } else {
             // error: erase failed
             debug::out << "error!\n";
-#ifndef NATIVE
             debug::set(debug::MAGENTA);
-#endif
         }
     }
 

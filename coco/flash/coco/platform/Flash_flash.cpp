@@ -5,9 +5,9 @@
 
 namespace coco {
 
-bool Flash_flash::BufferBase::start(Op op) {
+bool Flash_flash::BufferBase::start() {
     // check if READ, WRITE or ERASE flag is set
-    assert((op & (Op::READ_WRITE | Op::ERASE)) != 0);
+    assert((op_ & (Op::READ_WRITE | Op::ERASE)) != 0);
 
     // get address and check alignment
     auto address = address_;
@@ -17,7 +17,7 @@ bool Flash_flash::BufferBase::start(Op op) {
     auto data = (flash::Block *)data_;
     auto size = size_;
 
-    if ((op & (Op::WRITE | Op::ERASE)) == 0) {
+    if ((op_ & (Op::WRITE | Op::ERASE)) == 0) {
         // read
         auto src = (const flash::Block *)address;
         auto end = src + uint32_t(size + sizeof(flash::Block) - 1) / sizeof(flash::Block);
@@ -29,7 +29,7 @@ bool Flash_flash::BufferBase::start(Op op) {
             ++dst;
         }
     } else {
-        if ((op & Op::ERASE) == 0) {
+        if ((op_ & Op::ERASE) == 0) {
             // write
             flash::write(address, data, size);
         } else {
@@ -41,7 +41,8 @@ bool Flash_flash::BufferBase::start(Op op) {
         cache::flush();
     }
 
-    setReady(size);
+    // state stays READY
+
     return true;
 }
 

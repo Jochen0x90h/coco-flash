@@ -22,9 +22,9 @@ public:
         /// @param headerAndData Header and data buffer
         /// @param capacity Buffer capacity
         BufferBase(uint8_t *data, int capacity, Flash_flash &device)
-            : coco::Buffer(&address_, 4, 0, data, capacity, Buffer::State::READY), device_(device) {}
+            : coco::Buffer(&address_, 4, data, capacity, Buffer::State::READY), device_(device) {}
 
-        bool start(Op op) override;
+        bool start() override;
         bool cancel() override;
 
     protected:

@@ -2,7 +2,7 @@
 
 #include <coco/Buffer.hpp>
 #include <coco/String.hpp>
-#include <coco/platform/File.hpp>
+#include <coco/platform/NativeFile.hpp>
 
 
 namespace coco {
@@ -26,7 +26,7 @@ public:
         Buffer(int capacity, Flash_File &device);
         ~Buffer() override;
 
-        bool start(Op op) override;
+        bool start() override;
         bool cancel() override;
 
     protected:
@@ -35,7 +35,7 @@ public:
     };
 
 protected:
-    File file_;
+    NativeFile file_;
 
     // size of emulated flash
     uint32_t size_;
