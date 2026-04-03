@@ -52,8 +52,10 @@ Flash_File::Buffer::~Buffer() {
 }
 
 bool Flash_File::Buffer::start() {
-    // check if READ, WRITE or ERASE flag is set
-    assert((op_ & (Op::READ_WRITE | Op::ERASE)) != 0);
+    if ((op_ & (Op::READ_WRITE | Op::ERASE)) == 0) {
+        setSuccess();
+        return false;
+    }
 
     // get address from header and check alignment
     auto address = address_;
@@ -88,9 +90,8 @@ bool Flash_File::Buffer::start() {
         }
     }
 
-    // state stays READY
-
-    return true;
+    // state stays READY, therefore return false
+    return false;
 }
 
 bool Flash_File::Buffer::cancel() {

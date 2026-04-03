@@ -13,14 +13,14 @@
 
 using namespace coco;
 
-const uint32_t writeData[] = {0x12345678, 0x9abcdef0};
-const uint32_t erasedData[] = {0xffffffff, 0xffffffff};
+const uint8_t writeData[] = {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0};
+const uint8_t erasedData[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 uint32_t rd[2];
 
 Coroutine test(Loop &loop, Buffer &buffer) {
     buffer.header<uint32_t>() = FLASH_TEST_ADDRESS;
     co_await buffer.read(8);
-    if (buffer.array<uint32_t>() == writeData) {
+    if (buffer.array<uint8_t>() == writeData) {
         debug::out << "Data found from last run\n";
 
         // blue indicates that the data is there from the last run
@@ -32,7 +32,7 @@ Coroutine test(Loop &loop, Buffer &buffer) {
 
         // check if erase worked
         co_await buffer.read(8);
-        if (buffer.array<uint32_t>() == erasedData) {
+        if (buffer.array<uint8_t>() == erasedData) {
             debug::out << "success!\n";
         } else {
             debug::out << "error!\n";
@@ -45,16 +45,16 @@ Coroutine test(Loop &loop, Buffer &buffer) {
 
         // check if erase succeeded
         co_await buffer.read(8);
-        if (buffer.array<uint32_t>() == erasedData) {
+        if (buffer.array<uint8_t>() == erasedData) {
             debug::out << "success!\n";
 
             // write data
             debug::out << "Write ";
-            co_await buffer.writeArray(writeData);
+            co_await buffer.write(writeData);
 
             // read data and check if equal
             co_await buffer.read(8);
-            if (buffer.array<uint32_t>() == writeData) {
+            if (buffer.array<uint8_t>() == writeData) {
                 debug::out << "success!\n";
 
                 // green indicates that write and read was successful
