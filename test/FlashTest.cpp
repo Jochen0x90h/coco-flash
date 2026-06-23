@@ -1,7 +1,7 @@
-#include <coco/loop.hpp>
+#include <coco/Array.hpp>
+#include <coco/Loop.hpp>
 #include <coco/convert.hpp>
 #include <coco/debug.hpp>
-#include <coco/Array.hpp>
 #include <FlashTest.hpp>
 
 
