@@ -15,8 +15,8 @@ public:
     /// @param name File name
     /// @param size Size of emulated flash
     /// @param pageSize Size of one page that can be erased at once
-    /// @param blockSize Size of one block that can be written at once and is the read alignment
-    Flash_File(String name, int size, int pageSize, int blockSize);
+    /// @param wordSize Size of one word that can be written at once and is the read alignment
+    Flash_File(String name, int size, int pageSize, int wordSize);
 
     class Buffer : public coco::Buffer {
     public:
@@ -43,8 +43,8 @@ protected:
     // size of flash page (can be erased at once)
     int pageSize_;
 
-    // size of block (can be written at once)
-    int blockSize_;
+    // size of word (can be written at once)
+    int wordSize_;
 };
 
 } // namespace coco

@@ -33,16 +33,16 @@ public:
     };
 
     /// @brief Buffer for transferring data to/from internal flash
-    /// Capacity gets aligned to BLOCK_SIZE
+    /// Capacity gets aligned to WORD_SIZE
     /// @tparam C capacity of buffer
     template <int C>
     class Buffer : public BufferBase {
     public:
-        Buffer(Flash_flash &device) : BufferBase(data, align(C, flash::BLOCK_SIZE), device) {}
+        Buffer(Flash_flash &device) : BufferBase(data, align(C, flash::WORD_SIZE), device) {}
 
     protected:
-        // align size because read/write operates on whole blocks
-        alignas(4) uint8_t data[align(C, flash::BLOCK_SIZE)];
+        // align size because read/write operates on whole words
+        alignas(4) uint8_t data[align(C, flash::WORD_SIZE)];
     };
 
 protected:

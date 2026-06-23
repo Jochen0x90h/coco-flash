@@ -6,13 +6,13 @@ namespace coco {
 
 static const uint8_t erased[16] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-Flash_File::Flash_File(String name, int size, int pageSize, int blockSize)
+Flash_File::Flash_File(String name, int size, int pageSize, int wordSize)
     : file_(fs::path(std::string(name.data(), name.size())), NativeFile::Mode::CREATE_OR_OPEN)
-    , size_(size), pageSize_(pageSize), blockSize_(blockSize)
+    , size_(size), pageSize_(pageSize), wordSize_(wordSize)
 {
     // assert that sizes are power of 2
     assert((pageSize & (pageSize - 1)) == 0);
-    assert((blockSize & (blockSize - 1)) == 0);
+    assert((wordSize & (wordSize - 1)) == 0);
 
     // check that size consists of full pages
     assert((size & (pageSize - 1)) == 0);
@@ -59,7 +59,7 @@ bool Flash_File::Buffer::start() {
 
     // get address from header and check alignment
     auto address = address_;
-    assert((address & (device_.blockSize_ - 1)) == 0);
+    assert((address & (device_.wordSize_ - 1)) == 0);
 
     // get data and size
     auto data = data_;

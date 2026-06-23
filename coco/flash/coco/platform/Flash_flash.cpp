@@ -16,13 +16,13 @@ bool Flash_flash::BufferBase::start() {
     assert((address & (BLOCK_SIZE - 1)) == 0);
 
     // get data and size
-    auto data = (flash::Block *)data_;
+    auto data = (flash::Word *)data_;
     auto size = size_;
 
     if ((op_ & (Op::WRITE | Op::ERASE)) == 0) {
         // read
-        auto src = (const flash::Block *)address;
-        auto end = src + uint32_t(size + sizeof(flash::Block) - 1) / sizeof(flash::Block);
+        auto src = (const flash::Word *)address;
+        auto end = src + uint32_t(size + sizeof(flash::Word) - 1) / sizeof(flash::Word);
         auto dst = data;
         while (src < end) {
             // read block
