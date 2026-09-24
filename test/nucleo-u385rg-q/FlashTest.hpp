@@ -7,7 +7,7 @@
 
 using namespace coco;
 
-// address of last page in flash memory
+// address and size of last page in flash memory for testing
 constexpr uint32_t FLASH_TEST_ADDRESS = FLASH_ADDRESS + FLASH_SIZE - flash::PAGE_SIZE;
 constexpr uint32_t FLASH_TEST_SIZE = flash::PAGE_SIZE;
 

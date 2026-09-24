@@ -81,7 +81,7 @@ bool Flash_File::Buffer::start() {
 
         // align address to page
         int pageSize = device_.pageSize_;
-        uint32_t a = address & (pageSize - 1);
+        uint32_t a = address & ~(pageSize - 1);
         assert(a < device_.size_);
 
         // erase

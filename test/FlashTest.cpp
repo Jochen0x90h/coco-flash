@@ -79,8 +79,8 @@ Coroutine test(Loop &loop, Buffer &buffer) {
 
 int main() {
     debug::out << "FlashTest\n";
-    debug::out << "FLASH_ADDRESS " << hex(FLASH_ADDRESS) << '\n';
-    debug::out << "FLASH_SIZE " << hex(FLASH_SIZE) << '\n';
+    debug::out << "FLASH_ADDRESS 0x" << hex(FLASH_ADDRESS) << '\n';
+    debug::out << "FLASH_SIZE 0x" << hex(FLASH_SIZE) << '\n';
 
     test(drivers.loop, drivers.buffer);
 
